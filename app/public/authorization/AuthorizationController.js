@@ -25,6 +25,11 @@ angular.module('fetch.authorization', [])
     AuthorizationFactory.login(user);
   }
 
+  $scope.logout = function() {
+    AuthorizationFactory.logout();
+  }
+
+
   $scope.register = function(user) {
     AuthorizationFactory.register(user);
   }

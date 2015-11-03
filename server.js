@@ -1,6 +1,8 @@
 var express = require('express');
 var app = express();
-
+var jwt = require('jsonwebtoken');
+var expressjwt = require('express-jwt');
+var secret = 'ajsdf2897938Y4H4304082738423kaskdjhf3WLEKJFLK';
 // To switch databases, uncomment the postgres and comment out the dbConfig
 // var db = require('./app/server/dbConfig.js');
 var db = require('./app/server/dbHerokuPostgres.js');
@@ -15,6 +17,10 @@ app.set('port', (process.env.PORT || 5000));
 
 app.use(express.static(__dirname + '/app/public'));
 app.use(express.static(__dirname + '/node_modules'));
+
+app.use( expressjwt({ secret: secret }).unless({
+  path: ['/register', '/login', '/shelterLogin', '/shelterRegister']
+}));
 
 app.use(cookieParser());
 app.use(session({
@@ -41,6 +47,7 @@ app.post('/addDog', function(req, res) {
 app.post('/processSelection', function(req, res) {
   console.log('in process Selection')
   var activity = req.query.activity;
+
   Dog.query({
     where: {
       activity: activity,
@@ -157,7 +164,15 @@ app.post('/login', function(req, res) {
           if (matches) {
             console.log('Approved');
             req.session.userid = user;
-            res.send('selection');
+            var token = jwt.sign({
+              username: email
+            }, secret);
+
+            var tokenedResponse = {
+              jwt: token,
+              url: 'selection'
+            };
+            res.send(tokenedResponse);
           } else {
             console.log('NO');
             res.send('login');
@@ -232,6 +247,28 @@ app.post('/shelterLogin', function(req, res) {
     })
 });
 
+
+app.post('/checkAvail', function(req, res) {
+  console.log('server checkAvail')
+  var dogID = req.query.id;
+  console.log('dogID', dogID)
+  Dog.query({
+    where: {
+      id: dogID
+    }
+  }).fetch().then(function(found) {
+    console.log(found)
+    var availability = found.isAvail;
+    if (availability === '<Buffer 66 61 6c 73 65>') {
+      res.send("is NOT currently being fetched")
+    } else if ((availability === false) || (availability === 0)) {
+      res.send("is currently being fetched!")
+    } else {
+      res.send('i cant fix this stupid buffer')
+    }
+  })
+});
+
 app.post('/loadDogs', function(req, res) {
   Dog.fetchAll()
     .then(function(dogs) {
@@ -240,7 +277,6 @@ app.post('/loadDogs', function(req, res) {
       for (var i = 0; i < dogs.models.length; i++) {
         result.push(dogs.models[i].attributes)
       }
-      console.log(result)
       res.send(result)
     })
 })

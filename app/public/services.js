@@ -1,19 +1,34 @@
 angular.module('fetch.services', [])
 
-.factory('DogFactory', function($http) {
-  var processSelection = function(input) {
+.factory('TokenAttacher', function($window) {
+  var attachConfig = {};
+
+  attachConfig.attachConfig = function(config){
+    var jwt = $window.localStorage.getItem('fetchadog');
+    if (jwt) {
+      config.headers['x-access-token'] = jwt;
+    }
+    config.headers['Allow-Control-Allow-Origin'] = '*';
+    return config;
+  };
+
+  return attachConfig;
+})
+
+
+
+.factory('DogFactory', function($http, $window) {
+  var processSelection = function(activity) {
     console.log('in dog factory processSelection')
     return $http({
       method: 'POST',
       url: '/processSelection',
       params: {
-        activity: input
+        activity: activity,
+        token: $window.localStorage.getItem('fetchadog')
       }
     })
   };
-
-
-
 
   return {
     processSelection: processSelection
@@ -65,7 +80,7 @@ angular.module('fetch.services', [])
 
 }])
 
-.factory('AuthorizationFactory', ['$http', '$state', function($http, $state) {
+.factory('AuthorizationFactory', ['$http', '$state', '$window', function($http, $state, $window) {
 
   var login = function(user) {
     return $http({
@@ -79,7 +94,8 @@ angular.module('fetch.services', [])
         }
       })
       .success(function(response) {
-        $state.go(response);
+        $window.localStorage.setItem('fetchadog', response.jwt);
+        $state.go(response.url);
       });
   };
 
@@ -130,7 +146,7 @@ angular.module('fetch.services', [])
   };
 
   var logout = function() {
-
+    $window.localStorage.removeItem('fetchadog')
   };
 
   return {
