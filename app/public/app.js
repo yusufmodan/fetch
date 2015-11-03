@@ -2,7 +2,7 @@
 
 angular.module('fetch', ['fetch.authorization', 'fetch.confirmation', 'fetch.selection', 'fetch.services', 'fetch.shelter', 'fetch.shelterDogs', 'ngAnimate', 'ui.router', 'ui.bootstrap', 'angular-confirm', 'uiGmapgoogle-maps'])
 
-.config(['$stateProvider', '$urlRouterProvider', 'uiGmapGoogleMapApiProvider', function($stateProvider, $urlRouterProvider, uiGmapGoogleMapApiProvider) {
+.config(['$stateProvider', '$urlRouterProvider', 'uiGmapGoogleMapApiProvider', '$httpProvider', function($stateProvider, $urlRouterProvider, uiGmapGoogleMapApiProvider, $httpProvider) {
 
   uiGmapGoogleMapApiProvider.configure({
     key: 'AIzaSyDcBHkUsmjz7446x3lSUn3Gayuni5Ddn34',
@@ -13,7 +13,6 @@ angular.module('fetch', ['fetch.authorization', 'fetch.confirmation', 'fetch.sel
   $urlRouterProvider.otherwise('/chooseLogin');
 
   $stateProvider
-
     .state('chooseLogin', {
     url: '/chooseLogin',
     controller: 'AuthorizationController',
@@ -25,7 +24,7 @@ angular.module('fetch', ['fetch.authorization', 'fetch.confirmation', 'fetch.sel
     controller: 'AuthorizationController',
     templateUrl: 'authorization/userRegistration.html'
   })
-  
+
   .state('shelterRegistration', {
     url: '/shelterRegistration',
     controller: 'AuthorizationController',
@@ -41,7 +40,8 @@ angular.module('fetch', ['fetch.authorization', 'fetch.confirmation', 'fetch.sel
   .state('shelterDogs', {
     url: '/shelterDogs',
     controller: 'DogsController',
-    templateUrl: 'shelterDogs/shelterDogs.html'
+    templateUrl: 'shelterDogs/shelterDogs.html',
+    authRequired: true
   })
 
   .state('shelterLogin', {
@@ -59,19 +59,30 @@ angular.module('fetch', ['fetch.authorization', 'fetch.confirmation', 'fetch.sel
   .state('selection', {
     url: '/selection',
     controller: 'SelectionController',
-    templateUrl: 'selection/selectionView.html'
+    templateUrl: 'selection/selectionView.html',
+    authRequired: true
   })
 
   .state('confirmation', {
     url: '/confirmation/:dog', //if this doesn't work, remove url line or check out /confirmation/:dog
-    // params:['dog'], 
+    // params:['dog'],
     controller: 'ConfirmationController',
     templateUrl: 'confirmation/confirmationView.html'
   })
   .state('shelterForm', {
     url:'/addDog',
     controller: 'ShelterController',
-    templateUrl: 'shelterForm/shelterView.html'
+    templateUrl: 'shelterForm/shelterView.html',
+    authRequired: true
   });
 
-}]);
+  $httpProvider.interceptors.push('TokenAttacher');
+
+}])
+
+.run(function($rootScope, $location){
+  // if their next page request exists and next requiresAuth === true
+  // and if they're logged in (have a jwt) and the jwt is not expired
+    // UI route them new path
+    // else send them to login
+});
