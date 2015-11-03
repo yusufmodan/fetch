@@ -18,7 +18,14 @@ app.set('port', (process.env.PORT || 5000));
 app.use(express.static(__dirname + '/app/public'));
 app.use(express.static(__dirname + '/node_modules'));
 
-app.use(expressjwt({secret: secret}).unless({
+app.use(expressjwt({         //check jwt tokens for every post request
+  secret: secret,
+  getToken: function fromParams (req){
+    if(req.query.token){        
+      return req.query.token;
+    }
+  }
+}).unless({
   path: ['/register', '/login', '/shelterLogin', '/shelterRegister']
 }));
 
@@ -44,11 +51,8 @@ app.post('/addDog', function(req, res) {
   })
 })
 
-app.post('/processSelection', function(err, req, res) {
+app.post('/processSelection', function(req, res) {
   console.log('in process Selection ', req.body)
-  if(err){
-    res.send('login');
-  }
   var activity = req.query.activity;
 
   Dog.query({
