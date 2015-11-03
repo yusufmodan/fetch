@@ -3,9 +3,10 @@ angular.module('fetch.services', [])
 .factory('TokenAttacher', function($window) {
   var attachConfig = {};
 
-  attachConfig.attachConfig = function(config){
+  attachConfig.attachConfig = function(config) { 
     var jwt = $window.localStorage.getItem('fetchadog');
     if (jwt) {
+      //attach token to cors headers at 'x-access-token'
       config.headers['x-access-token'] = jwt;
     }
     config.headers['Allow-Control-Allow-Origin'] = '*';
@@ -24,8 +25,7 @@ angular.module('fetch.services', [])
       method: 'POST',
       url: '/processSelection',
       params: {
-        activity: activity,
-        token: $window.localStorage.getItem('fetchadog')
+        activity: activity
       }
     })
   };
@@ -56,7 +56,7 @@ angular.module('fetch.services', [])
       method: 'POST',
       url: '/confirmReturn',
       params: {
-        id: dogID
+        id: dogI
       }
     })
   }
@@ -64,7 +64,7 @@ angular.module('fetch.services', [])
   var loadDogs = function() {
     return $http({
         method: 'POST',
-        url: '/loadDogs',
+        url: '/loadDogs'
       })
       .then(function(resp) {
         console.log('resp:', resp.data)
@@ -108,6 +108,7 @@ angular.module('fetch.services', [])
           firstName: user.firstName,
           lastName: user.lastName,
           password: user.password
+
         }
       })
       .success(function(response) {
@@ -123,6 +124,7 @@ angular.module('fetch.services', [])
           email: shelter.email,
           displayName: shelter.displayName,
           password: shelter.password
+
         }
       })
       .success(function(response) {

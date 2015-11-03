@@ -75,14 +75,16 @@ angular.module('fetch', ['fetch.authorization', 'fetch.confirmation', 'fetch.sel
     templateUrl: 'shelterForm/shelterView.html',
     authRequired: true
   });
-
+  //every post request will contain the token if it exists because of this interceptor below
   $httpProvider.interceptors.push('TokenAttacher');
 
 }])
 
-.run(function($rootScope, $location){
-  // if their next page request exists and next requiresAuth === true
-  // and if they're logged in (have a jwt) and the jwt is not expired
-    // UI route them new path
-    // else send them to login
+.run(function($rootScope, $location, $window, $state){
+  $rootScope.$on('$stateChangeStart', function(evt, nextState){
+    if(nextState.authRequired && !$window.localStorage.getItem('fetchadog')){
+      evt.preventDefault();
+      $state.go('login');
+    }
+  })
 });
